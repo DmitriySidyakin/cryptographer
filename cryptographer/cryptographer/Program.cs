@@ -17,7 +17,8 @@
         static void Main(string[] args)
         {
             var pass = string.Empty;
-            pass = GetPassword(pass);
+            pass = GetPassword();
+            Console.WriteLine(pass);
 
             // Если задано необходимое количество аргументов
             if(args.Length == 3) {
@@ -38,8 +39,9 @@
             }
         }
 
-        private static string GetPassword(string pass)
+        private static string GetPassword()
         {
+            var pass = string.Empty;
             ConsoleKey key;
             do
             {
