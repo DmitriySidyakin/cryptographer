@@ -1,9 +1,4 @@
-﻿#define DEBUG // Если установлено DEBUG, то приложение компилируется с дополнительными командами для отладки. Исправьте на что-то другое, не
-              // совпадающее с другими переменными препроцессора, если хотите использовать безопасню скомпилированныю отлаженную версию.
-              // К примеру, в DEBUG-режиме, отображается вводимый пароль, если он задан, не как аргумент. Он же в стандартном режиме
-              // отображается замаскированным.
-
-namespace Cryptographer
+﻿namespace Cryptographer
 {
     internal class Program
     {
@@ -32,19 +27,19 @@ namespace Cryptographer
          * Отличное от 0 является ошибкой:
          * 1 - Аргумент 2 задан не верно.
          * 2 - Аргумент 3 задан не верно.
-         * 3 - Количество аргументов задано не верно. Их должно быть 5.
+         * 3 - Количество аргументов задано не верно. Их должно быть 5 или 4.
+         * 4 - Входной файл не существует.
+         * 5 - Выходной файл не может быть перезаписан.
          **/
         static int Main(string[] args)
         {
             // Запросить пароль, если он не задан в аргументах.
             var pass = string.Empty;
             if (args.Length < 5) {
-                pass = GetPassword();             
-#if DEBUG
-                Console.WriteLine(pass);
-#endif
+                Console.WriteLine("Enter the key of crypting: ");
+                pass = GetPassword();
+                Console.WriteLine();           
             }
-            
 
             // Если задано необходимое количество аргументов
             if(args.Length == 4) {
@@ -62,42 +57,53 @@ namespace Cryptographer
                 {
                     isEncryption = true;
                 }
-                // Иначе это дешифрация
+                // иначе это дешифрация
                 if (args[2].Equals("d") || args[2].Equals("D"))
                 {
                     isEncryption = false;
                 }
-                // 
+                // иначе ошибка
                 else {
                     Console.WriteLine("Error: Argument 3 is wrong! It must have value in (e, E, d, D). e or E - It is encription, d or D - decription.");
                     return 1;
                 }
 
-                // Пытаемся распознать 3-ий аргумент
                 if(!bool.TryParse(args[3], out isOutputOverridable))
                 {
+                    /*
+                        Если файл "inputFullFileName" не существует (не существует файл для шифрования). То это ошибка, приложение прерывается и выводит сообщение.
+                        Если файл "outputFullFileName" не существует на диске то это правильно. Если он существует, то
+                        перезапись возможна только с аргументом 3.
+                    */
+                    if(File.Exists(inputFullFileName)) {
+                        if(File.Exists(outputFullFileName)) {
+                            if(!isOutputOverridable) {
+                                Console.WriteLine("Error: Output file can't be overwritten!");
+                                return 5;
+                            }
+                        }
+                    }
+                    else {
+                        Console.WriteLine("Error: Input file doesn't exist!");
+                        return 4;
+                    }
+
                     if(isOutputOverridable)
-                        Console.WriteLine("The output file wouldn be rewritten.");
+                        Console.WriteLine("The output file wouldn be rewritten.");  
                     else
                         Console.WriteLine("The output file wouldn't be rewritten.");
                 }
                 else {
+                    Console.WriteLine("Error: Argument 4 is wrong! It must have value in (e, E, d, D). e or E - It is encription, d or D - decription.");
                     return 2;
                 }
-
-                // TODO: Проверить файлы на существование.
-                /*
-                        Если файл "inputFullFileName" не существует (не существует файл для шифрования). То это ошибка, приложение прерывается и выводит сообщение.
-                        Если файл "outputFullFileName" не существует на диске то это правильно. Если он существует, то
-                    перезапись возможна только с аргументом 3.
-                */
 
                 // Берём из аргументов пароль.
                 if(args.Length == 5) {
                     pass = args[4];
                 }
 
-                Cryptographer.Crypt(pass, inputFullFileName, outputFullFileName, isEncryption, isOutputOverridable);
+                Cryptographer.Crypt(pass, inputFullFileName, outputFullFileName, isEncryption);
                 return 0;
             }
             else {
